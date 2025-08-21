@@ -256,10 +256,14 @@ export async function createReview(reviewData: ReviewFormData): Promise<Review> 
     throw new Error('Property ID is required to create a review');
   }
 
-  // Add null check for reviewer_name with proper type guard
-  const reviewerName = reviewData.reviewer_name?.trim()
+  // Add proper null check and type validation for reviewer_name
+  if (!reviewData.reviewer_name || typeof reviewData.reviewer_name !== 'string') {
+    throw new Error('Reviewer name is required and must be a string');
+  }
+
+  const reviewerName = reviewData.reviewer_name.trim()
   if (!reviewerName) {
-    throw new Error('Reviewer name is required');
+    throw new Error('Reviewer name cannot be empty');
   }
 
   try {
