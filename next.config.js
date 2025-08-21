@@ -1,20 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'cdn.cosmicjs.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'imgix.cosmicjs.com',
-      },
+    domains: [
+      'cdn.cosmicjs.com',
+      'imgix.cosmicjs.com',
+      'images.unsplash.com'
     ],
   },
-  experimental: {
-    optimizeCss: true,
-  },
+  // Remove experimental CSS optimization that was causing build failures
+  // experimental: {
+  //   optimizeCss: true
+  // }
 }
 
 module.exports = nextConfig
