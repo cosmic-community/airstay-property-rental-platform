@@ -81,9 +81,16 @@ export default function ReviewSection({
   }
 
   const formatDate = (dateString: string | undefined): string => {
-    // Provide default date if dateString is undefined
-    const validDateString = dateString || new Date().toISOString().split('T')[0]
-    return new Date(validDateString).toLocaleDateString('en-US', {
+    // Add null check and provide default date if dateString is undefined
+    if (!dateString) {
+      return new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    }
+    
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
