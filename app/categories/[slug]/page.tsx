@@ -9,14 +9,16 @@ interface CategoryPageProps {
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params
-  const [category, properties] = await Promise.all([
-    getCategory(slug),
-    getPropertiesByCategory(slug)
-  ])
-
+  
+  // First get the category by slug
+  const category = await getCategory(slug)
+  
   if (!category) {
     notFound()
   }
+
+  // Then get properties using the category ID
+  const properties = await getPropertiesByCategory(category.id)
 
   return (
     <div className="container mx-auto px-6 py-12">

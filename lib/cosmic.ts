@@ -54,7 +54,7 @@ export async function getProperties(): Promise<Property[]> {
   }
 }
 
-// Fetch properties by category
+// Fetch properties by category ID
 export async function getPropertiesByCategory(categoryId: string): Promise<Property[]> {
   try {
     const response = await cosmic.objects
