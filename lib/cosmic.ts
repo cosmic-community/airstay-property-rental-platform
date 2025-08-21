@@ -1,5 +1,5 @@
 import { createBucketClient } from '@cosmicjs/sdk'
-import { Property, Host, Category, CosmicResponse } from '@/types'
+import { Property, Host, Category, HomePage, CosmicResponse } from '@/types'
 
 export const cosmic = createBucketClient({
   bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
@@ -11,6 +11,26 @@ export const cosmic = createBucketClient({
 // Simple error helper for Cosmic SDK
 function hasStatus(error: unknown): error is { status: number } {
   return typeof error === 'object' && error !== null && 'status' in error;
+}
+
+// Fetch home page content
+export async function getHomePage(): Promise<HomePage | null> {
+  try {
+    const response = await cosmic.objects
+      .findOne({
+        type: 'home-page',
+        slug: 'home-page'
+      })
+      .props(['id', 'title', 'slug', 'metadata'])
+
+    return response.object as HomePage;
+  } catch (error) {
+    if (hasStatus(error) && error.status === 404) {
+      return null;
+    }
+    console.error('Error fetching home page:', error);
+    throw new Error('Failed to fetch home page');
+  }
 }
 
 // Fetch all properties with host and category data

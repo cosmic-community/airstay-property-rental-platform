@@ -10,6 +10,23 @@ export interface CosmicObject {
   modified_at: string;
 }
 
+// Home Page interface
+export interface HomePage extends CosmicObject {
+  type: 'home-page';
+  metadata: {
+    hero_title: string;
+    hero_subtitle: string;
+    hero_image: {
+      url: string;
+      imgix_url: string;
+    };
+    primary_button_text: string;
+    primary_button_link: string;
+    secondary_button_text?: string;
+    secondary_button_link?: string;
+  };
+}
+
 // Property interface
 export interface Property extends CosmicObject {
   type: 'properties';
@@ -78,6 +95,10 @@ export function isHost(obj: CosmicObject): obj is Host {
 
 export function isCategory(obj: CosmicObject): obj is Category {
   return obj.type === 'categories';
+}
+
+export function isHomePage(obj: CosmicObject): obj is HomePage {
+  return obj.type === 'home-page';
 }
 
 // Utility types

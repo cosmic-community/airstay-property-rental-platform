@@ -14,14 +14,14 @@ export default async function HomePage() {
       <Hero />
       
       <div className="container mx-auto px-6 py-12">
-        <div className="mb-8">
+        <div id="categories" className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Browse by Category
           </h2>
           <CategoryFilter categories={categories} />
         </div>
 
-        <div className="mb-8">
+        <div id="featured" className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">
             Featured Properties
           </h2>
