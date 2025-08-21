@@ -41,7 +41,10 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         </div>
       </div>
 
-      <PropertyGallery photos={property.metadata.property_photos || []} />
+      <PropertyGallery 
+        photos={property.metadata.property_photos || []} 
+        propertyName={property.metadata.property_name}
+      />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-12">
         <div className="lg:col-span-2">
