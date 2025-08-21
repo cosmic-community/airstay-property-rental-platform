@@ -88,18 +88,30 @@ export default function ReviewSection({
     })
   }
 
-  // Helper function to extract rating number from various formats
+  // Helper function to extract rating number from Cosmic CMS rating format
   const getRatingNumber = (rating: any): number => {
-    if (typeof rating === 'string') {
-      if (rating.includes('5')) return 5;
-      else if (rating.includes('4')) return 4;
-      else if (rating.includes('3')) return 3;
-      else if (rating.includes('2')) return 2;
-      else if (rating.includes('1')) return 1;
-      return parseInt(rating) || 5;
-    } else if (typeof rating === 'object' && rating.key) {
-      return parseInt(rating.key) || 5;
+    // Handle Cosmic CMS select-dropdown format: {key: "3", value: "3 Stars"}
+    if (typeof rating === 'object' && rating !== null && 'key' in rating) {
+      const ratingNum = parseInt(rating.key);
+      return !isNaN(ratingNum) && ratingNum >= 1 && ratingNum <= 5 ? ratingNum : 5;
     }
+    
+    // Handle string format
+    if (typeof rating === 'string') {
+      // Try to extract number from strings like "3 Stars" or "3"
+      const match = rating.match(/(\d+)/);
+      if (match) {
+        const ratingNum = parseInt(match[1]);
+        return !isNaN(ratingNum) && ratingNum >= 1 && ratingNum <= 5 ? ratingNum : 5;
+      }
+    }
+    
+    // Handle direct number
+    if (typeof rating === 'number') {
+      return rating >= 1 && rating <= 5 ? rating : 5;
+    }
+    
+    // Default to 5 if unable to parse
     return 5;
   }
 

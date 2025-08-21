@@ -210,8 +210,8 @@ export async function getAllReviews(): Promise<Review[]> {
   }
 }
 
-// Helper function to convert rating number to the required dropdown value
-function getRatingDropdownValue(rating: string): string {
+// Helper function to convert rating number to the required Cosmic CMS dropdown object format
+function getRatingDropdownObject(rating: string): { key: string; value: string } {
   const ratingMap: Record<string, string> = {
     '5': '5 Stars',
     '4': '4 Stars', 
@@ -219,7 +219,11 @@ function getRatingDropdownValue(rating: string): string {
     '2': '2 Stars',
     '1': '1 Star'
   }
-  return ratingMap[rating] || '5 Stars'
+  
+  return {
+    key: rating,
+    value: ratingMap[rating] || '5 Stars'
+  }
 }
 
 // Create a new review
@@ -234,7 +238,7 @@ export async function createReview(reviewData: ReviewFormData): Promise<Review> 
       metadata: {
         reviewer_name: reviewData.reviewer_name,
         email: reviewData.email,
-        rating: getRatingDropdownValue(reviewData.rating),
+        rating: getRatingDropdownObject(reviewData.rating),
         comment: reviewData.comment,
         property: reviewData.property_id,
         review_date: today,
@@ -247,6 +251,33 @@ export async function createReview(reviewData: ReviewFormData): Promise<Review> 
     console.error('Error creating review:', error);
     throw new Error('Failed to create review');
   }
+}
+
+// Helper function to extract rating number from Cosmic CMS rating format
+function getRatingNumber(rating: any): number {
+  // Handle Cosmic CMS select-dropdown format: {key: "3", value: "3 Stars"}
+  if (typeof rating === 'object' && rating !== null && 'key' in rating) {
+    const ratingNum = parseInt(rating.key);
+    return !isNaN(ratingNum) && ratingNum >= 1 && ratingNum <= 5 ? ratingNum : 5;
+  }
+  
+  // Handle string format  
+  if (typeof rating === 'string') {
+    // Try to extract number from strings like "3 Stars" or "3"
+    const match = rating.match(/(\d+)/);
+    if (match) {
+      const ratingNum = parseInt(match[1]);
+      return !isNaN(ratingNum) && ratingNum >= 1 && ratingNum <= 5 ? ratingNum : 5;
+    }
+  }
+  
+  // Handle direct number
+  if (typeof rating === 'number') {
+    return rating >= 1 && rating <= 5 ? rating : 5;
+  }
+  
+  // Default to 5 if unable to parse
+  return 5;
 }
 
 // Calculate average rating for a property
@@ -263,25 +294,7 @@ export function calculatePropertyRating(reviews: Review[]) {
   let totalRating = 0;
 
   reviews.forEach(review => {
-    // Parse rating from the dropdown value format with proper type guards
-    let ratingNumber = 5; // default
-    
-    if (review?.metadata?.rating) {
-      if (typeof review.metadata.rating === 'string') {
-        if (review.metadata.rating.includes('5')) ratingNumber = 5;
-        else if (review.metadata.rating.includes('4')) ratingNumber = 4;
-        else if (review.metadata.rating.includes('3')) ratingNumber = 3;
-        else if (review.metadata.rating.includes('2')) ratingNumber = 2;
-        else if (review.metadata.rating.includes('1')) ratingNumber = 1;
-      } else if (typeof review.metadata.rating === 'object' && review.metadata.rating !== null && 'key' in review.metadata.rating) {
-        const ratingObj = review.metadata.rating as { key: string };
-        const parsedRating = parseInt(ratingObj.key);
-        if (!isNaN(parsedRating) && parsedRating >= 1 && parsedRating <= 5) {
-          ratingNumber = parsedRating;
-        }
-      }
-    }
-    
+    const ratingNumber = getRatingNumber(review?.metadata?.rating);
     totalRating += ratingNumber;
     ratingDistribution[ratingNumber as keyof typeof ratingDistribution]++;
   });

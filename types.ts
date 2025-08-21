@@ -76,13 +76,16 @@ export interface Category extends CosmicObject {
   };
 }
 
-// Review interface
+// Review interface with proper rating type for Cosmic CMS select-dropdown format
 export interface Review extends CosmicObject {
   type: 'reviews';
   metadata: {
     reviewer_name: string;
     email: string;
-    rating: string;
+    rating: {
+      key: string;
+      value: string;
+    } | string | number;
     comment: string;
     property: Property;
     review_date: string;
