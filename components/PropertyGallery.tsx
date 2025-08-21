@@ -10,100 +10,153 @@ interface PropertyGalleryProps {
   propertyName: string
 }
 
-export default function PropertyGallery({ photos, propertyName }: PropertyGalleryProps) {
-  const [currentImage, setCurrentImage] = useState(0)
-  const [showLightbox, setShowLightbox] = useState(false)
+export default function PropertyGallery({ photos = [], propertyName }: PropertyGalleryProps) {
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [showModal, setShowModal] = useState(false)
 
+  // Handle empty photos array
   if (!photos || photos.length === 0) {
     return (
       <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-        <span className="text-gray-500">No photos available</span>
+        <div className="text-gray-500 text-center">
+          <div className="text-4xl mb-2">🏠</div>
+          <p>No photos available</p>
+        </div>
       </div>
     )
   }
 
+  const mainPhoto = photos[0]
+  const additionalPhotos = photos.slice(1, 5)
+
+  const openModal = (index: number) => {
+    setSelectedImageIndex(index)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+  }
+
+  const nextImage = () => {
+    setSelectedImageIndex((prev) => (prev + 1) % photos.length)
+  }
+
+  const prevImage = () => {
+    setSelectedImageIndex((prev) => (prev - 1 + photos.length) % photos.length)
+  }
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      closeModal()
+    } else if (event.key === 'ArrowRight') {
+      nextImage()
+    } else if (event.key === 'ArrowLeft') {
+      prevImage()
+    }
+  }
+
   return (
-    <div className="grid grid-cols-4 gap-2 h-96">
-      {/* Main image */}
-      <div 
-        className="col-span-2 row-span-2 relative cursor-pointer group"
-        onClick={() => setShowLightbox(true)}
-      >
-        <img
-          src={`${photos[0].imgix_url}?w=800&h=600&fit=crop&auto=format,compress`}
-          alt={`${propertyName} - Main view`}
-          className="w-full h-full object-cover rounded-l-lg group-hover:opacity-90 transition-opacity"
-        />
+    <>
+      <div className="grid grid-cols-4 grid-rows-2 gap-2 h-96 rounded-lg overflow-hidden">
+        {/* Main large image */}
+        {mainPhoto && (
+          <div 
+            className="col-span-2 row-span-2 cursor-pointer relative group"
+            onClick={() => openModal(0)}
+          >
+            <img
+              src={`${mainPhoto.imgix_url}?w=800&h=600&fit=crop&auto=format,compress`}
+              alt={`${propertyName} - Main view`}
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity"></div>
+          </div>
+        )}
+        
+        {/* Additional smaller images */}
+        {additionalPhotos.map((photo, index) => {
+          const actualIndex = index + 1
+          const isLast = index === 3 && photos.length > 5
+          
+          return photo ? (
+            <div 
+              key={actualIndex}
+              className="cursor-pointer relative group"
+              onClick={() => openModal(actualIndex)}
+            >
+              <img
+                src={`${photo.imgix_url}?w=400&h=300&fit=crop&auto=format,compress`}
+                alt={`${propertyName} - View ${actualIndex + 1}`}
+                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity"></div>
+              
+              {/* Show more photos overlay */}
+              {isLast && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                  <span className="text-white font-semibold text-lg">
+                    +{photos.length - 5} more
+                  </span>
+                </div>
+              )}
+            </div>
+          ) : null
+        })}
       </div>
 
-      {/* Secondary images */}
-      {photos.slice(1, 5).map((photo, index) => (
-        <div
-          key={index}
-          className={`relative cursor-pointer group ${
-            index === 1 ? 'rounded-tr-lg' : ''
-          } ${index === 3 ? 'rounded-br-lg' : ''}`}
-          onClick={() => {
-            setCurrentImage(index + 1)
-            setShowLightbox(true)
-          }}
+      {/* Modal for full-size images */}
+      {showModal && photos[selectedImageIndex] && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
+          onClick={closeModal}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
         >
-          <img
-            src={`${photo.imgix_url}?w=400&h=300&fit=crop&auto=format,compress`}
-            alt={`${propertyName} - View ${index + 2}`}
-            className={`w-full h-full object-cover group-hover:opacity-90 transition-opacity ${
-              index === 1 ? 'rounded-tr-lg' : ''
-            } ${index === 3 ? 'rounded-br-lg' : ''}`}
-          />
-          {index === 3 && photos.length > 5 && (
-            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-br-lg">
-              <span className="text-white text-lg font-semibold">
-                +{photos.length - 5} more
-              </span>
-            </div>
-          )}
-        </div>
-      ))}
-
-      {/* Lightbox */}
-      {showLightbox && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
-          <button
-            onClick={() => setShowLightbox(false)}
-            className="absolute top-4 right-4 text-white text-2xl hover:opacity-70 z-10"
-          >
-            ×
-          </button>
-          
-          <button
-            onClick={() => setCurrentImage((prev) => (prev === 0 ? photos.length - 1 : prev - 1))}
-            className="absolute left-4 text-white text-3xl hover:opacity-70 z-10"
-            disabled={photos.length <= 1}
-          >
-            ‹
-          </button>
-          
-          <button
-            onClick={() => setCurrentImage((prev) => (prev === photos.length - 1 ? 0 : prev + 1))}
-            className="absolute right-4 text-white text-3xl hover:opacity-70 z-10"
-            disabled={photos.length <= 1}
-          >
-            ›
-          </button>
-
-          <div className="max-w-5xl max-h-full mx-auto">
+          <div className="relative max-w-4xl max-h-4xl w-full h-full flex items-center justify-center p-4">
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 z-10"
+              aria-label="Close modal"
+            >
+              ×
+            </button>
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                prevImage()
+              }}
+              className="absolute left-4 text-white text-4xl hover:text-gray-300 z-10"
+              aria-label="Previous image"
+            >
+              ‹
+            </button>
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                nextImage()
+              }}
+              className="absolute right-4 text-white text-4xl hover:text-gray-300 z-10"
+              aria-label="Next image"
+            >
+              ›
+            </button>
+            
             <img
-              src={`${photos[currentImage].imgix_url}?w=1200&h=800&fit=max&auto=format,compress`}
-              alt={`${propertyName} - View ${currentImage + 1}`}
+              src={`${photos[selectedImageIndex].imgix_url}?w=1200&h=900&fit=max&auto=format,compress`}
+              alt={`${propertyName} - View ${selectedImageIndex + 1}`}
               className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
             />
-          </div>
-          
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white">
-            {currentImage + 1} / {photos.length}
+            
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-lg">
+              {selectedImageIndex + 1} of {photos.length}
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
