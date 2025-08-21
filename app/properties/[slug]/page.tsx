@@ -2,8 +2,8 @@
 import { getProperty } from '@/lib/cosmic'
 import { notFound } from 'next/navigation'
 import PropertyDetails from '@/components/PropertyDetails'
-import HostCard from '@/components/HostCard'
 import PropertyGallery from '@/components/PropertyGallery'
+import HostProfile from '@/components/HostProfile'
 
 interface PropertyPageProps {
   params: Promise<{ slug: string }>
@@ -17,11 +17,11 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
     notFound()
   }
 
-  const host = property.metadata.host
+  // Ensure we have the property photos array, default to empty array if undefined
   const photos = property.metadata.property_photos || []
 
   return (
-    <div className="container mx-auto px-6 py-8">
+    <div className="container mx-auto px-6 py-12">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">
           {property.metadata.property_name}
@@ -31,11 +31,12 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         </p>
       </div>
 
-      {photos.length > 0 && (
-        <div className="mb-12">
-          <PropertyGallery photos={photos} propertyName={property.metadata.property_name} />
-        </div>
-      )}
+      <div className="mb-12">
+        <PropertyGallery 
+          photos={photos}
+          propertyName={property.metadata.property_name}
+        />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2">
@@ -43,10 +44,8 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         </div>
         
         <div className="lg:col-span-1">
-          {host && (
-            <div className="sticky top-8">
-              <HostCard host={host} pricePerNight={property.metadata.price_per_night} />
-            </div>
+          {property.metadata.host && (
+            <HostProfile host={property.metadata.host} />
           )}
         </div>
       </div>
@@ -66,6 +65,8 @@ export async function generateMetadata({ params }: PropertyPageProps) {
 
   return {
     title: `${property.metadata.property_name} - AirStay`,
-    description: property.metadata.description?.replace(/<[^>]*>/g, '').slice(0, 160),
+    description: property.metadata.description ? 
+      property.metadata.description.replace(/<[^>]*>/g, '').substring(0, 160) : 
+      `Stay at ${property.metadata.property_name} in ${property.metadata.location}`,
   }
 }
