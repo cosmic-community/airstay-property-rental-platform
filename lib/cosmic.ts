@@ -256,7 +256,9 @@ export async function createReview(reviewData: ReviewFormData): Promise<Review> 
     throw new Error('Property ID is required to create a review');
   }
 
-  if (!reviewData.reviewer_name?.trim()) {
+  // Add null check for reviewer_name with proper type guard
+  const reviewerName = reviewData.reviewer_name?.trim()
+  if (!reviewerName) {
     throw new Error('Reviewer name is required');
   }
 
@@ -264,11 +266,11 @@ export async function createReview(reviewData: ReviewFormData): Promise<Review> 
     const today = new Date().toISOString().split('T')[0];
     
     const response = await cosmic.objects.insertOne({
-      title: `Review by ${reviewData.reviewer_name}`,
+      title: `Review by ${reviewerName}`,
       type: 'reviews',
       status: 'published',
       metadata: {
-        reviewer_name: reviewData.reviewer_name,
+        reviewer_name: reviewerName,
         email: reviewData.email,
         rating: getRatingDropdownObject(reviewData.rating),
         comment: reviewData.comment,
