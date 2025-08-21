@@ -76,6 +76,29 @@ export interface Category extends CosmicObject {
   };
 }
 
+// Review interface
+export interface Review extends CosmicObject {
+  type: 'reviews';
+  metadata: {
+    reviewer_name: string;
+    email: string;
+    rating: string;
+    comment: string;
+    property: Property;
+    review_date: string;
+    verified_stay?: boolean;
+  };
+}
+
+// Review form data
+export interface ReviewFormData {
+  reviewer_name: string;
+  email: string;
+  rating: string;
+  comment: string;
+  property_id: string;
+}
+
 // API response types
 export interface CosmicResponse<T> {
   objects: T[];
@@ -101,6 +124,10 @@ export function isHomePage(obj: CosmicObject): obj is HomePage {
   return obj.type === 'home-page';
 }
 
+export function isReview(obj: CosmicObject): obj is Review {
+  return obj.type === 'reviews';
+}
+
 // Utility types
 export type PropertyWithHost = Property & {
   metadata: Property['metadata'] & {
@@ -113,4 +140,17 @@ export interface SearchParams {
   category?: string;
   location?: string;
   guests?: number;
+}
+
+// Rating calculation utilities
+export interface PropertyRating {
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: {
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
 }

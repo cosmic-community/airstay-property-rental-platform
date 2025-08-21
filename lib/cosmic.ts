@@ -1,5 +1,5 @@
 import { createBucketClient } from '@cosmicjs/sdk'
-import { Property, Host, Category, HomePage, CosmicResponse } from '@/types'
+import { Property, Host, Category, HomePage, Review, ReviewFormData, CosmicResponse } from '@/types'
 
 export const cosmic = createBucketClient({
   bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
@@ -169,4 +169,96 @@ export async function getHost(slug: string): Promise<Host | null> {
     console.error('Error fetching host:', error);
     throw new Error('Failed to fetch host');
   }
+}
+
+// Fetch reviews for a specific property
+export async function getPropertyReviews(propertyId: string): Promise<Review[]> {
+  try {
+    const response = await cosmic.objects
+      .find({ 
+        type: 'reviews',
+        'metadata.property': propertyId
+      })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+
+    return response.objects as Review[];
+  } catch (error) {
+    if (hasStatus(error) && error.status === 404) {
+      return [];
+    }
+    console.error('Error fetching property reviews:', error);
+    throw new Error('Failed to fetch property reviews');
+  }
+}
+
+// Fetch all reviews
+export async function getAllReviews(): Promise<Review[]> {
+  try {
+    const response = await cosmic.objects
+      .find({ type: 'reviews' })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+
+    return response.objects as Review[];
+  } catch (error) {
+    if (hasStatus(error) && error.status === 404) {
+      return [];
+    }
+    console.error('Error fetching all reviews:', error);
+    throw new Error('Failed to fetch all reviews');
+  }
+}
+
+// Create a new review
+export async function createReview(reviewData: ReviewFormData): Promise<Review> {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const response = await cosmic.objects.insertOne({
+      title: `Review by ${reviewData.reviewer_name}`,
+      type: 'reviews',
+      status: 'published',
+      metadata: {
+        reviewer_name: reviewData.reviewer_name,
+        email: reviewData.email,
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        property: reviewData.property_id,
+        review_date: today,
+        verified_stay: false
+      }
+    });
+
+    return response.object as Review;
+  } catch (error) {
+    console.error('Error creating review:', error);
+    throw new Error('Failed to create review');
+  }
+}
+
+// Calculate average rating for a property
+export function calculatePropertyRating(reviews: Review[]) {
+  if (reviews.length === 0) {
+    return {
+      averageRating: 0,
+      totalReviews: 0,
+      ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    };
+  }
+
+  const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  let totalRating = 0;
+
+  reviews.forEach(review => {
+    const rating = parseInt(review.metadata.rating);
+    totalRating += rating;
+    ratingDistribution[rating as keyof typeof ratingDistribution]++;
+  });
+
+  return {
+    averageRating: Number((totalRating / reviews.length).toFixed(1)),
+    totalReviews: reviews.length,
+    ratingDistribution
+  };
 }

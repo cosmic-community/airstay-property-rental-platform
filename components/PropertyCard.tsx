@@ -1,8 +1,34 @@
 import Link from 'next/link'
 import { Property } from '@/types'
+import { getPropertyReviews, calculatePropertyRating } from '@/lib/cosmic'
+import { Suspense } from 'react'
 
 interface PropertyCardProps {
   property: Property
+}
+
+async function PropertyRating({ propertyId }: { propertyId: string }) {
+  const reviews = await getPropertyReviews(propertyId);
+  const rating = calculatePropertyRating(reviews);
+
+  if (rating.totalReviews === 0) {
+    return (
+      <div className="flex items-center gap-1 text-sm text-gray-500">
+        <span>⭐</span>
+        <span>No reviews yet</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1 text-sm">
+      <span>⭐</span>
+      <span className="font-medium">{rating.averageRating}</span>
+      <span className="text-gray-500">
+        ({rating.totalReviews} review{rating.totalReviews !== 1 ? 's' : ''})
+      </span>
+    </div>
+  );
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
@@ -46,10 +72,21 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </p>
         </div>
         
-        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
           <span>{property.metadata.bedrooms} bed{property.metadata.bedrooms !== 1 ? 's' : ''}</span>
           <span>{property.metadata.bathrooms} bath{property.metadata.bathrooms !== 1 ? 's' : ''}</span>
           <span>{property.metadata.max_guests} guest{property.metadata.max_guests !== 1 ? 's' : ''}</span>
+        </div>
+
+        <div className="mb-4">
+          <Suspense fallback={
+            <div className="flex items-center gap-1 text-sm text-gray-500">
+              <span>⭐</span>
+              <span>Loading...</span>
+            </div>
+          }>
+            <PropertyRating propertyId={property.id} />
+          </Suspense>
         </div>
         
         {host && (
