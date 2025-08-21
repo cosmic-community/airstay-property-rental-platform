@@ -210,6 +210,18 @@ export async function getAllReviews(): Promise<Review[]> {
   }
 }
 
+// Helper function to convert rating number to the required dropdown value
+function getRatingDropdownValue(rating: string): string {
+  const ratingMap: Record<string, string> = {
+    '5': '5 Stars',
+    '4': '4 Stars', 
+    '3': '3 Stars',
+    '2': '2 Stars',
+    '1': '1 Star'
+  }
+  return ratingMap[rating] || '5 Stars'
+}
+
 // Create a new review
 export async function createReview(reviewData: ReviewFormData): Promise<Review> {
   try {
@@ -222,7 +234,7 @@ export async function createReview(reviewData: ReviewFormData): Promise<Review> 
       metadata: {
         reviewer_name: reviewData.reviewer_name,
         email: reviewData.email,
-        rating: reviewData.rating,
+        rating: getRatingDropdownValue(reviewData.rating),
         comment: reviewData.comment,
         property: reviewData.property_id,
         review_date: today,
@@ -251,9 +263,20 @@ export function calculatePropertyRating(reviews: Review[]) {
   let totalRating = 0;
 
   reviews.forEach(review => {
-    const rating = parseInt(review.metadata.rating);
-    totalRating += rating;
-    ratingDistribution[rating as keyof typeof ratingDistribution]++;
+    // Parse rating from the dropdown value format
+    let ratingNumber = 5; // default
+    if (typeof review.metadata.rating === 'string') {
+      if (review.metadata.rating.includes('5')) ratingNumber = 5;
+      else if (review.metadata.rating.includes('4')) ratingNumber = 4;
+      else if (review.metadata.rating.includes('3')) ratingNumber = 3;
+      else if (review.metadata.rating.includes('2')) ratingNumber = 2;
+      else if (review.metadata.rating.includes('1')) ratingNumber = 1;
+    } else if (typeof review.metadata.rating === 'object' && review.metadata.rating.key) {
+      ratingNumber = parseInt(review.metadata.rating.key);
+    }
+    
+    totalRating += ratingNumber;
+    ratingDistribution[ratingNumber as keyof typeof ratingDistribution]++;
   });
 
   return {

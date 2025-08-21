@@ -88,6 +88,21 @@ export default function ReviewSection({
     })
   }
 
+  // Helper function to extract rating number from various formats
+  const getRatingNumber = (rating: any): number => {
+    if (typeof rating === 'string') {
+      if (rating.includes('5')) return 5;
+      else if (rating.includes('4')) return 4;
+      else if (rating.includes('3')) return 3;
+      else if (rating.includes('2')) return 2;
+      else if (rating.includes('1')) return 1;
+      return parseInt(rating) || 5;
+    } else if (typeof rating === 'object' && rating.key) {
+      return parseInt(rating.key) || 5;
+    }
+    return 5;
+  }
+
   return (
     <div className="mt-12">
       <div className="flex items-center justify-between mb-8">
@@ -251,7 +266,7 @@ export default function ReviewSection({
                   </h4>
                   <div className="flex items-center gap-2 mt-1">
                     <div className="flex items-center">
-                      {renderStarRating(parseInt(review.metadata.rating))}
+                      {renderStarRating(getRatingNumber(review.metadata.rating))}
                     </div>
                     <span className="text-sm text-gray-500">
                       {formatDate(review.metadata.review_date)}
