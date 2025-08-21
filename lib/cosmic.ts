@@ -190,6 +190,12 @@ export async function getHost(slug: string): Promise<Host | null> {
 
 // Fetch reviews for a specific property
 export async function getPropertyReviews(propertyId: string): Promise<Review[]> {
+  // Add null check for propertyId
+  if (!propertyId) {
+    console.warn('Property ID is required for fetching reviews');
+    return [];
+  }
+
   try {
     const response = await cosmic.objects
       .find({ 
@@ -245,6 +251,15 @@ function getRatingDropdownObject(rating: string): { key: string; value: string }
 
 // Create a new review
 export async function createReview(reviewData: ReviewFormData): Promise<Review> {
+  // Add validation for reviewData properties
+  if (!reviewData.property_id) {
+    throw new Error('Property ID is required to create a review');
+  }
+
+  if (!reviewData.reviewer_name?.trim()) {
+    throw new Error('Reviewer name is required');
+  }
+
   try {
     const today = new Date().toISOString().split('T')[0];
     
@@ -311,6 +326,7 @@ export function calculatePropertyRating(reviews: Review[]) {
   let totalRating = 0;
 
   reviews.forEach(review => {
+    // Add null safety check for review and metadata
     const ratingNumber = getRatingNumber(review?.metadata?.rating);
     totalRating += ratingNumber;
     ratingDistribution[ratingNumber as keyof typeof ratingDistribution]++;
