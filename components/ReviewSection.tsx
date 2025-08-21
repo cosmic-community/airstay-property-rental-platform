@@ -80,9 +80,10 @@ export default function ReviewSection({
     ))
   }
 
-  const formatDate = (dateString: string) => {
-    // dateString is now guaranteed to be a string, not undefined
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string | undefined): string => {
+    // Provide default date if dateString is undefined
+    const validDateString = dateString || new Date().toISOString().split('T')[0]
+    return new Date(validDateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -282,7 +283,7 @@ export default function ReviewSection({
                       {renderStarRating(getRatingNumber(review.metadata?.rating))}
                     </div>
                     <span className="text-sm text-gray-500">
-                      {formatDate(review.metadata?.review_date || new Date().toISOString().split('T')[0])}
+                      {formatDate(review.metadata?.review_date)}
                     </span>
                   </div>
                 </div>
