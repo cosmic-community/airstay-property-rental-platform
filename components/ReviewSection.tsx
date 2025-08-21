@@ -269,7 +269,7 @@ export default function ReviewSection({
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                    {review.metadata.reviewer_name}
+                    {review.metadata.reviewer_name || 'Anonymous'}
                     {review.metadata.verified_stay && (
                       <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                         Verified Stay
@@ -281,13 +281,13 @@ export default function ReviewSection({
                       {renderStarRating(getRatingNumber(review.metadata.rating))}
                     </div>
                     <span className="text-sm text-gray-500">
-                      {formatDate(review.metadata.review_date)}
+                      {formatDate(review.metadata.review_date || new Date().toISOString().split('T')[0])}
                     </span>
                   </div>
                 </div>
               </div>
               <p className="text-gray-700 leading-relaxed">
-                {review.metadata.comment}
+                {review.metadata.comment || 'No comment provided'}
               </p>
             </div>
           ))}
