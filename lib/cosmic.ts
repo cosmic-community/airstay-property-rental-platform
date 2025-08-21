@@ -263,16 +263,23 @@ export function calculatePropertyRating(reviews: Review[]) {
   let totalRating = 0;
 
   reviews.forEach(review => {
-    // Parse rating from the dropdown value format
+    // Parse rating from the dropdown value format with proper type guards
     let ratingNumber = 5; // default
-    if (typeof review.metadata.rating === 'string') {
-      if (review.metadata.rating.includes('5')) ratingNumber = 5;
-      else if (review.metadata.rating.includes('4')) ratingNumber = 4;
-      else if (review.metadata.rating.includes('3')) ratingNumber = 3;
-      else if (review.metadata.rating.includes('2')) ratingNumber = 2;
-      else if (review.metadata.rating.includes('1')) ratingNumber = 1;
-    } else if (typeof review.metadata.rating === 'object' && review.metadata.rating.key) {
-      ratingNumber = parseInt(review.metadata.rating.key);
+    
+    if (review?.metadata?.rating) {
+      if (typeof review.metadata.rating === 'string') {
+        if (review.metadata.rating.includes('5')) ratingNumber = 5;
+        else if (review.metadata.rating.includes('4')) ratingNumber = 4;
+        else if (review.metadata.rating.includes('3')) ratingNumber = 3;
+        else if (review.metadata.rating.includes('2')) ratingNumber = 2;
+        else if (review.metadata.rating.includes('1')) ratingNumber = 1;
+      } else if (typeof review.metadata.rating === 'object' && review.metadata.rating !== null && 'key' in review.metadata.rating) {
+        const ratingObj = review.metadata.rating as { key: string };
+        const parsedRating = parseInt(ratingObj.key);
+        if (!isNaN(parsedRating) && parsedRating >= 1 && parsedRating <= 5) {
+          ratingNumber = parsedRating;
+        }
+      }
     }
     
     totalRating += ratingNumber;
