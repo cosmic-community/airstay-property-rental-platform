@@ -281,7 +281,7 @@ export default function ReviewSection({
                       {renderStarRating(getRatingNumber(review.metadata.rating))}
                     </div>
                     <span className="text-sm text-gray-500">
-                      {formatDate(review.metadata.review_date || new Date().toISOString().split('T')[0])}
+                      {review.metadata.review_date ? formatDate(review.metadata.review_date) : formatDate(new Date().toISOString().split('T')[0])}
                     </span>
                   </div>
                 </div>
